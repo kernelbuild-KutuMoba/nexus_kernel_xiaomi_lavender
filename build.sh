@@ -12,10 +12,10 @@ chat_id="-1001921678002"
 KERNEL_DIR="$(pwd)"
 
 # Zip Name
-ZIPNAME="Nexus-v10.3"
+ZIPNAME="TES_TES_NAMA"
 
 # Specify compiler ( eva , azure , proton , arter , aosp & nexus )
-COMPILER=nexus
+COMPILER=tes_compiler
 
 # Device Name and Model
 MODEL=Redmi Note 7
@@ -34,7 +34,7 @@ echo "CONFIG_XIAOMI_NEWCAM=y" >> arch/arm64/configs/lavender_defconfig
 fi
 
 # Kernel Defconfig
-DEFCONFIG=lavender_defconfig
+DEFCONFIG=lavender-perf_defconfig
 
 # Optimizations
 LTO=1

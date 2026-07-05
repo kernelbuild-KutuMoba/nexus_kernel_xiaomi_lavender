@@ -4,6 +4,10 @@
  # Script For Building Android arm64 Kernel
  # 
 
+token="5445531176:AAGwd6pVM-UoDrNos3R00QSlr0KuffkZLMY"
+chat_id="-1001921678002"
+
+
  # Specify Kernel Directory
 KERNEL_DIR="$(pwd)"
 

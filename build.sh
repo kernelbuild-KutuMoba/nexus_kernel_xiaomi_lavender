@@ -1,27 +1,18 @@
-#!/usr/bin/env bash
-
- #
- # Script For Building Android arm64 Kernel
- # 
+#!/bin/bash
 
 token="5445531176:AAGwd6pVM-UoDrNos3R00QSlr0KuffkZLMY"
 chat_id="-1001921678002"
 
-
- # Specify Kernel Directory
 KERNEL_DIR="$(pwd)"
+ZIPNAME="ujicoba"
 
-# Zip Name
-ZIPNAME="TES_TES_NAMA"
-
-# Specify compiler ( eva , azure , proton , arter , aosp & nexus )
+# ( eva , azure , proton , arter , aosp & nexus )
 COMPILER=proton
 
-# Device Name and Model
 MODEL=Redmi Note 7
 DEVICE=lavender
+ANDROID=13
 
-# Specify Version
 if [ "$1" = "--qti" ]; then
 VERSION=Qti-Old
 elif [ "$1" = "--a12-qti" ]; then
@@ -33,10 +24,8 @@ VERSION=New
 echo "CONFIG_XIAOMI_NEWCAM=y" >> arch/arm64/configs/lavender_defconfig
 fi
 
-# Kernel Defconfig
 DEFCONFIG=lavender_defconfig
 
-# Optimizations
 LTO=1
 if [ $LTO = "1" ]; then
 echo "CONFIG_THIN_ARCHIVES=y
@@ -51,31 +40,21 @@ CONFIG_LLVM_POLLY=y
 CONFIG_CRYPTO_AES_ARM64=y" >> arch/arm64/configs/lavender-perf_defconfig
 fi
 
-# Linker
 LINKER=ld.lld
 
-# Path
-IMAGE=$(pwd)/out/arch/arm64/boot/Image.gz-dtb
-
-# Verbose Build
 VERBOSE=0
 
-# Kernel Version
 KERVER=$(make kernelversion)
 
 COMMIT_HEAD=$(git log --oneline -1)
 
-# Date and Time
 DATE=$(TZ=Asia/Kolkata date +"%Y%m%d-%T")
 START=$(date +"%s")
 TANGGAL=$(date +"%F%S")
 
-FINAL_ZIP=${ZIPNAME}-EAS-KSU-${VERSION}-${DEVICE}-${TANGGAL}.zip
-##----------------------------------------------------------##
+FINAL_ZIP=${ZIPNAME}-HMP-${VERSION}-${DEVICE}-${ANDROID}-${TANGGAL}.zip
 
-# Cloning Dependencies
 function clone() {
-    # Clone Toolchain
         if [ $COMPILER = "azure" ]; then
                 post_msg " Cloning Azure Clang ToolChain "
 		git clone --depth=1  https://gitlab.com/ImSpiDy/azure-clang.git clang
@@ -105,10 +84,9 @@ function clone() {
 		git clone --depth=1 https://github.com/mvaisakh/gcc-arm.git gcc32
 		PATH=$KERNEL_DIR/gcc64/bin/:$KERNEL_DIR/gcc32/bin/:/usr/bin:$PATH
         fi
-        # Clone AnyKernel3
+
 		git clone --depth=1 https://github.com/Projects-aRise/AnyKernel3 AnyKernel3
 }
-##------------------------------------------------------##
 
 function exports() {
     if [ -d ${KERNEL_DIR}/clang ]; then
@@ -129,8 +107,6 @@ function exports() {
 
 }
 
-##----------------------------------------------------------------##
-
 if [ "$1" = "--old" ]; then
 function post_msg() {
     curl -s -X POST "https://api.telegram.org/bot$token/sendMessage" \
@@ -141,8 +117,6 @@ function post_msg() {
 }
 fi 
 
-##----------------------------------------------------------##
-
 function push() {
     curl -F document=@$1 "https://api.telegram.org/bot$token/sendDocument" \
          -F chat_id="$chat_id" \
@@ -150,8 +124,6 @@ function push() {
          -F "parse_mode=html" \
          -F caption="$2"
 }
-
-##----------------------------------------------------------##
 
 function compile() {
 	post_msg "<b>$KBUILD_BUILD_VERSION CI Build Triggered</b>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Pipeline Host : </b><code>$KBUILD_BUILD_HOST</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>Branch : </b><code>$CI_BRANCH</code>%0A<b>Top Commit : </b><a href='$DRONE_COMMIT_LINK'>$COMMIT_HEAD</a>"
@@ -203,13 +175,21 @@ function compile() {
 				OBJSIZE=llvm-size \
 				V=$VERBOSE 2>&1 | tee error.log
 				fi
-
-    if ! [ -a "$IMAGE" ]; then
-        push "error.log" "Build Throws Errors"
-        exit 1
-    fi
-    # Copy Files To AnyKernel3 Zip
-    cp $IMAGE AnyKernel3
+				
+FOUND=0
+for FILE in "$KERNEL_DIR"/out/arch/arm64/boot/*; do
+    case "$(basename "$FILE")" in
+        Image*|*.dtb|*.dtbo|dtb.img|dtbo.img|*.img)
+            cp "$FILE" AnyKernel3/
+	    FOUND=1
+            ;;
+    esac
+done
+if [ "$FOUND" -eq 0 ]; then
+    echo "gagal"
+    push "error.log" "Build Throws Errors"
+    exit 1
+fi
 }
 ##----------------------------------------------------------##
 
@@ -220,7 +200,6 @@ function zipping() {
     push "$FINAL_ZIP" "Build took : $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) second(s) | For <b>$MODEL ($DEVICE)</b> | <b>${KBUILD_COMPILER_STRING}</b> | <b>MD5 Checksum : </b><code>$MD5CHECK</code>"
     cd ..
 }
-##----------------------------------------------------------##
 
 clone
 exports
@@ -228,5 +207,3 @@ compile
 END=$(date +"%s")
 DIFF=$(($END - $START))
 zipping
-
-##----------------*****-----------------------------##

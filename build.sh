@@ -52,7 +52,7 @@ DATE=$(TZ=Asia/Kolkata date +"%Y%m%d-%T")
 START=$(date +"%s")
 TANGGAL=$(date +"%F%S")
 
-FINAL_ZIP=${ZIPNAME}-HMP-${VERSION}-${DEVICE}-${ANDROID}-${TANGGAL}.zip
+FINAL_ZIP=${ZIPNAME}-CAF-${VERSION}-${DEVICE}-${ANDROID}-${TANGGAL}.zip
 
 function clone() {
         if [ $COMPILER = "azure" ]; then
